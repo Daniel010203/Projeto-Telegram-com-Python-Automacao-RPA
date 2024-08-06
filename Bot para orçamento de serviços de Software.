@@ -1,0 +1,49 @@
+import telebot
+
+chave_API = "7378384061:AAGxIiQqQ9xLqHFm-A9g5Yz8svp2SRgsYtM"
+bot = telebot.TeleBot(chave_API)
+
+# Lista de serviços oferecidos
+servicos = [
+    "1) Teste de Software",
+    "2) Análise de Dados",
+    "3) Desenvolvimento Web"
+]
+
+# Função para iniciar o bot
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Bem-vindo ao nosso serviço de orçamentos para desenvolvimento de software! Oferecemos os seguintes serviços:\n" + "\n".join(servicos) + "\nPor favor, escolha um serviço digitando o número correspondente:")
+
+# Função para receber a escolha do serviço
+@bot.message_handler(func=lambda message: message.text in ["1", "2", "3"])
+def ask_for_details(message):
+    escolha = int(message.text)
+    servico_escolhido = servicos[escolha - 1]
+    bot.reply_to(message, "Você escolheu " + servico_escolhido + ". Por favor, informe seu nome completo:")
+
+# Função para receber o nome completo
+@bot.message_handler(func=lambda message: message.text not in ["1", "2", "3"])
+def ask_for_address(message):
+    global nome_completo
+    nome_completo = message.text
+    bot.reply_to(message, "Obrigado, " + nome_completo + ". Agora, por favor, informe seu endereço:")
+
+# Função para receber o endereço
+@bot.message_handler(func=lambda message: message.text != nome_completo)
+def ask_for_payment(message):
+    global endereco
+    endereco = message.text
+    bot.reply_to(message, "Endereço recebido. Por favor, informe sua forma de pagamento (Cartão de Crédito, Boleto, etc.):")
+
+# Função para finalizar o orçamento
+@bot.message_handler(func=lambda message: message.text != endereco)
+def finalize_quote(message):
+    forma_pagamento = message.text
+    bot.reply_to(message, "Orçamento finalizado! Aqui estão os detalhes do seu pedido:\n"
+                          "Nome: " + nome_completo + "\n"
+                          "Endereço: " + endereco + "\n"
+                          "Forma de Pagamento: " + forma_pagamento + "\n"
+                          "Obrigado por solicitar um orçamento conosco!")
+
+bot.polling()
